@@ -8,20 +8,19 @@ import os
 
 import pymongo
 
-# hard code configuration
-MONGO_CONN_STR = os.environ.get("MONGO_CONN_STR")
-# MONGO_CONN_STR = None
-
-MONGO_DB = "MAUVE"
-
 GLOBAL_MONGO = {}
 MONGO_LOGGER = logging.getLogger(__name__)
+
+# hard code configuration
+MONGO_CONN_STR = os.environ.get("MONGO_CONN_STR", None)
+MONGO_DB = "MAUVE"
+
 
 def client_factory() -> pymongo.mongo_client.MongoClient:
     """Set the Mongo client"""
     MONGO_LOGGER.warning(f"Getting Mongo client with str={MONGO_CONN_STR}")
     client = pymongo.MongoClient(MONGO_CONN_STR)
-    # client.server_info()
+    client.server_info()  # check server liveness
     return client
 
 def get_db() -> pymongo.database.Database:
@@ -43,21 +42,22 @@ def shutdown_client():
 
 def update_collection(col_name: str, doc: Dict, filter: Dict = None):
     """Update the collection given the collection_name, doc, and filter"""
-    MONGO_LOGGER.warning(f"Updating to {col_name}:\n \t {pf(docs)}")
+    MONGO_LOGGER.warning(f"Updating to {col_name}:\n \t {pf(doc)}")
     collection = get_db()[col_name]
     return collection.update_many(filter, {"$set": doc})
 
-def insert_collection(col_name:str, docs: Union[Dict, List[Dict]]):
+def insert_collection(col_name:str, docs: Union[Dict, List[Dict]]) -> Union[str, List[str]]:
     """Insert the collection with many or one doc"""
     MONGO_LOGGER.warning(f"Inserting {len(docs)} docs to {col_name}")
     collection = get_db()[col_name]
     print(collection)
     inserted = None
     if isinstance(docs, list):
-        inserted = collection.insert_many(docs)
+        inserted = collection.insert_many(docs).inserted_ids
     else:
-        inserted = collection.insert_one(docs)
+        inserted = collection.insert_one(docs).inserted_id
     MONGO_LOGGER.warning(f"Inserted doc(s) with id(s) {inserted}")
+    return inserted
 
 def get_docs(col_name: str, filter: Dict = None, many=True) -> Union[Dict, List[Dict]]:
     """Get documents from given col_name collection"""
