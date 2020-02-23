@@ -55,7 +55,7 @@ async def shutdown():
     APP_LOGGER.warning("Shuting down app...")
     mauve_db.shutdown_client()
 
-@app.get("/")
+@app.get("/status")
 async def liveness():
     return {"status": "OK"}
 
@@ -88,9 +88,11 @@ async def get_user_catalog():
 
 @app.get("/users/{email}", response_model=models.User)
 async def get_user_by_email(email):
-    return models.User.parse_obj(
-        mauve_db.get_docs(USER_COLL_NAME, {"email" : email},many=False)
-    )
+    result = mauve_db.get_docs(USER_COLL_NAME, {"email" : email}, many=False)
+    if not result:
+        raise exceptions.NotFound
+    return models.User.parse_obj(result)
+
 
 @app.get("/projects", response_model=models.Projects)
 async def project_catalog():
@@ -98,6 +100,16 @@ async def project_catalog():
     return {
         "projects": [
             models.Project.parse_obj(pj) for pj in mauve_db.get_docs(PJ_COLL_NAME)
+        ]
+    }
+
+
+@app.get("/projects", response_model=models.Projects)
+async def project_by_email(email: str):
+    "Check the project catalog"
+    return {
+        "projects": [
+            models.Project.parse_obj(pj) for pj in mauve_db.get_docs(PJ_COLL_NAME, filter={"email": email})
         ]
     }
 
@@ -111,8 +123,13 @@ async def create_project(project: models.Project = Body(PROJECT_EXAMPLE, example
 
 
 @app.exception_handler(exceptions.DuplicatedError)
-async def duplicaed_data_handler(request, exec):
+async def duplicated_data_handler(request, exec):
     return PlainTextResponse("Email is not available for use", 409)
+
+
+@app.exception_handler(exceptions.NotFound)
+async def not_found_data_handler(request, exec):
+    return PlainTextResponse("Not Found", 404)
 
 
 @app.post("/blogs")
