@@ -6,6 +6,7 @@ import logging
 
 from fastapi import FastAPI, Body
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.responses import PlainTextResponse
 
 import mauve_api.mauve_db as mauve_db
@@ -43,6 +44,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(HTTPSRedirectMiddleware)
 
 @app.on_event("startup")
 async def startup():
