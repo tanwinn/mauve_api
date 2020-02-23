@@ -1,9 +1,7 @@
 """
-Data Model
+Data Model for MauveDB
 """
 from typing import List
-import uuid
-
 
 from pydantic import BaseModel, Field
 

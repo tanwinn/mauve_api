@@ -15,7 +15,7 @@ APP_LOGGER = logging.getLogger(__name__)
 USER_COLL_NAME = "users"
 PJ_COLL_NAME = "projects"
 
-app = FastAPI(docs_url="/")
+app = FastAPI(title="MauveAPI", description="Mauve APP Backend", docs_url="/")
 
 
 USER_EXAMPLE = {
@@ -59,9 +59,8 @@ async def shutdown():
 async def liveness():
     return {"status": "OK"}
 
-@app.get("/db/{collection_name}/count")
+@app.get("/_db/{collection_name}/count")
 async def test_db(collection_name: str):
-    # mauve_db.insert_collection(USER_COLL_NAME, {"foo": "bar"})
     return {"count": mauve_db.count(collection_name)}
 
 @app.post("/users", status_code=200)
@@ -130,8 +129,3 @@ async def duplicated_data_handler(request, exec):
 @app.exception_handler(exceptions.NotFound)
 async def not_found_data_handler(request, exec):
     return PlainTextResponse("Not Found", 404)
-
-
-@app.post("/blogs")
-async def create_post(whole_post: models.Blog):
-    return whole_post.dict()
