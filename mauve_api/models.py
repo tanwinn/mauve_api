@@ -4,7 +4,6 @@ Data Model
 from typing import List
 import uuid
 
-import bson
 
 from pydantic import BaseModel, Field
 
