@@ -17,3 +17,6 @@ MONGO_CONN_STR=mongodb+srv://mauve:pearlhacks@cluster0-kz2za.mongodb.net/test?re
 ```
 
 Make sure to reset the pipenv shell to apply the change
+
+### TODO:
+Add Pytest as the testing framework
