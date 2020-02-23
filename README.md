@@ -15,7 +15,7 @@ uvicorn app.main:app --reload  # Run the app
 
 __.env file___
 ```bash
-MONGO_CONN_STR=mongodb+srv://mauve:pearlhacks@cluster0-kz2za.mongodb.net/test?retryWrites=true&w=majority
+MONGO_CONN_STR=mongodb+srv://mauve:<PASSWORD>@cluster0-kz2za.mongodb.net/test?retryWrites=true&w=majority
 ```
 
 Make sure to reset the pipenv shell to apply the change
