@@ -16,11 +16,11 @@ pipenv shell  # activate venv
 pipenv sync # sync the dependencies packages
 ```
 
-# Testing
+# Dev framework
 ```bash
 pytest
-# for coverage # TODO: Config pytest
-pytest --cov=. tests/
+bc fmt # formatting
+prospector # linting TODO: fix bc config linting
 ```
 
 ## Download MongoDB Server Or connect to the MongoDB Cluster Atlas
@@ -37,6 +37,5 @@ uvicorn api.main:app --reload  # Run the app
 ```
 
 # WIP
-- Testing config
 - Package setup
 - Test plugins?
