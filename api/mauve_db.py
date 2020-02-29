@@ -63,11 +63,11 @@ def shutdown_client():
         MONGO_LOGGER.warning("No mongo client found. Do nothing...")
 
 
-def update_collection(col_name: str, doc: Dict, filter: Dict = None):
-    """Update the collection given the collection_name, doc, and filter"""
+def update_collection(col_name: str, doc: Dict, filter_dict: Dict = None):
+    """Update the collection given the collection_name, doc, and filter_dict"""
     MONGO_LOGGER.warning(f"Updating to {col_name}:\n \t {pf(doc)}")
     collection = get_db()[col_name]
-    return collection.update_many(filter, {"$set": doc})
+    return collection.update_many(filter_dict, {"$set": doc})
 
 
 def insert_collection(
@@ -85,21 +85,24 @@ def insert_collection(
     return inserted
 
 
-def get_docs(col_name: str, filter: Dict = None, many=True) -> Union[Dict, List[Dict]]:
+def get_docs(
+    col_name: str, filter_dict: Dict = None, many=True
+) -> Union[Dict, List[Dict]]:
     """Get documents from given col_name collection"""
     MONGO_LOGGER.warning(
         f"Getting {'many' if many else 'one'} doc(s) in {col_name} "
-        f"with filter={filter}"
+        f"with filter_dict={filter_dict}"
     )
     collection = get_db()[col_name]
     if many:
-        return collection.find(filter)
-    else:
-        return collection.find_one(filter)
+        return collection.find(filter_dict)
+    return collection.find_one(filter_dict)
 
 
-def count(col_name: str, filter: Dict = {}) -> int:
+def count(col_name: str, filter_dict: Dict = None) -> int:
     """Get document counter"""
-    MONGO_LOGGER.warning(f"Counting docs in {col_name} with filter={filter}")
+    if not filter_dict:
+        filter_dict = {}
+    MONGO_LOGGER.warning(f"Counting docs in {col_name} with filter_dict={filter_dict}")
     collection = get_db()[col_name]
-    return collection.count_documents(filter=filter)
+    return collection.count_documents(filter=filter_dict)

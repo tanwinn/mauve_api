@@ -1,10 +1,8 @@
 """
 tests.test_mauve_db.py
 """
-from pprint import pformat as pf
-
+# pylint: disable=unused-argument
 import mongomock
-import pymongo
 import pytest
 
 from api import mauve_db
@@ -77,7 +75,7 @@ class TestMauveDB:
         assert any([not v for v in mauve_db.client_cfg_factory(**kwargs).values()])
 
     def test_client_factory(self):
-        client = mauve_db.client_factory()
+        assert mauve_db.client_factory()
 
     @pytest.mark.parametrize("set_client", [False, True])
     def test_shutdown_client(self, set_client, set_global_db):
@@ -94,7 +92,7 @@ class TestMauveDB:
     def test_update_collection(self, loaded_bisque_collection):
         foo_bar = {"foo": "bar"}
         mauve_db.update_collection(
-            col_name=TEST_COL_NAME, doc=foo_bar, filter={"scheme": "pastel"}
+            col_name=TEST_COL_NAME, doc=foo_bar, filter_dict={"scheme": "pastel"}
         )
         assert loaded_bisque_collection.count_documents(foo_bar) == 3
 
