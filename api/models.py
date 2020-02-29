@@ -1,18 +1,27 @@
 """
+api.models.py
+~~~~~~~~~~~~~
 Data Model for MauveDB
 """
+# pylint: disable=no-member
 from typing import List
 
-from pydantic import BaseModel, Field
+import pydantic
 
 
-class User(BaseModel):
+class User(pydantic.BaseModel):
+    """User data model"""
+
     name: str
-    email: str = Field("foo@bar.com", description="Unique email identifying user")
+    email: str = pydantic.Field(
+        "foo@bar.com", description="Unique email identifying user"
+    )
     password: str
 
 
-class Project(BaseModel):
+class Project(pydantic.BaseModel):
+    """Project data model"""
+
     title: str
     user: str = None
     description: str
@@ -20,9 +29,13 @@ class Project(BaseModel):
     id: str = None
 
 
-class Projects(BaseModel):
+class Projects(pydantic.BaseModel):
+    """Projects data model"""
+
     projects: List[Project]
 
 
-class Users(BaseModel):
+class Users(pydantic.BaseModel):
+    """Users data model"""
+
     users: List[User]
