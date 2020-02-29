@@ -12,12 +12,6 @@ class User(BaseModel):
     password: str
 
 
-class Blog(BaseModel):
-    title: str
-    summary: str 
-    author: User = None
-
-
 class Project(BaseModel):
     title: str
     user: str = None

@@ -2,4 +2,4 @@
 FastApi Mauve Python app
 """
 
-from mauve_api import exceptions
+from api import exceptions
