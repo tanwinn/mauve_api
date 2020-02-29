@@ -4,13 +4,14 @@ api.main.py
 
 import logging
 
-from fastapi import FastAPI, Body
+from fastapi import Body, FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+
+# from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.responses import PlainTextResponse
 
-from api import models, exceptions, mauve_db
-from api.model_descriptions import USER_EXAMPLE, PROJECT_EXAMPLE
+from api import exceptions, mauve_db, models
+from api.model_descriptions import PROJECT_EXAMPLE, USER_EXAMPLE
 
 APP_LOGGER = logging.getLogger(__name__)
 USER_COLL_NAME = "users"
@@ -18,10 +19,7 @@ PJ_COLL_NAME = "projects"
 
 
 app = FastAPI(
-    title="MauveAPI",
-    description="Mauve APP Backend",
-    docs_url="/",
-    redoc_url="/docs",
+    title="MauveAPI", description="Mauve APP Backend", docs_url="/", redoc_url="/docs",
 )
 
 
@@ -37,7 +35,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# HTTPS Redirect
 # app.add_middleware(HTTPSRedirectMiddleware)
+
 
 @app.on_event("startup")
 def startup():
@@ -50,25 +50,24 @@ def shutdown():
     APP_LOGGER.warning("Shuting down app...")
     mauve_db.shutdown_client()
 
+
 @app.get("/status")
 async def liveness():
     return {"status": "OK"}
+
 
 @app.get("/_db/{collection_name}/count")
 def test_db(collection_name: str):
     return {"count": mauve_db.count(collection_name)}
 
+
 @app.post("/users", status_code=200)
-def create_user(
-    ser_profile: models.User = Body(USER_EXAMPLE, example=USER_EXAMPLE)
-):
+def create_user(user_profile: models.User = Body(USER_EXAMPLE, example=USER_EXAMPLE)):
     """Create new users in users collection"""
-    info = {"email" : user_profile.email}
-    if mauve_db.count(USER_COLL_NAME, filter=info):
+    info = {"email": user_profile.email}
+    if mauve_db.count(USER_COLL_NAME, filter_dict=info):
         raise exceptions.DuplicatedError
-    mauve_db.insert_collection(
-        USER_COLL_NAME, docs=user_profile.dict()
-    )
+    mauve_db.insert_collection(USER_COLL_NAME, docs=user_profile.dict())
     return info
 
 
@@ -84,7 +83,7 @@ def get_user_catalog():
 
 @app.get("/users/{email}", response_model=models.User)
 def get_user_by_email(email):
-    result = mauve_db.get_docs(USER_COLL_NAME, {"email" : email}, many=False)
+    result = mauve_db.get_docs(USER_COLL_NAME, {"email": email}, many=False)
     if not result:
         raise exceptions.NotFound
     return models.User.parse_obj(result)
@@ -100,13 +99,14 @@ def project_catalog():
     }
 
 
-@app.get("/projects", response_model=models.Projects)
+@app.get("/projects/{email}", response_model=models.Projects)
 def project_by_email(email: str):
     "Check the project catalog"
+    result = mauve_db.get_docs(PJ_COLL_NAME, filter_dict={"email": email})
+    if not list(result):
+        raise exceptions.NotFound
     return {
-        "projects": [
-            models.Project.parse_obj(pj) for pj in mauve_db.get_docs(PJ_COLL_NAME, filter={"email": email})
-        ]
+        "projects": [models.Project.parse_obj(pj) for pj in result]
     }
 
 
@@ -116,15 +116,17 @@ def create_project(
 ) -> models.Projects:
     "Post a project catalog"
     _id = mauve_db.insert_collection(PJ_COLL_NAME, docs=project.dict())
-    mauve_db.update_collection(PJ_COLL_NAME, doc={"id": str(_id)}, filter={"_id": _id})
+    mauve_db.update_collection(
+        PJ_COLL_NAME, doc={"id": str(_id)}, filter_dict={"_id": _id}
+    )
     return {"id": str(_id)}
 
 
 @app.exception_handler(exceptions.DuplicatedError)
-async def duplicated_data_handler(request, exec):
+async def duplicated_data_handler(*args, **kwargs):  # pylint:disable=unused-argument
     return PlainTextResponse("Email is not available for use", 409)
 
 
 @app.exception_handler(exceptions.NotFound)
-async def not_found_data_handler(request, exec):
+async def not_found_data_handler(*args, **kwargs):  # pylint:disable=unused-argument
     return PlainTextResponse("Not Found", 404)

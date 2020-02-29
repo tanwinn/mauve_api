@@ -2,10 +2,10 @@
 mauve_api.mauve_db
 MauveDB utils & managment
 """
-from typing import Dict, List, Union
-from pprint import pformat as pf
 import logging
 import os
+from pprint import pformat as pf
+from typing import Dict, List, Union
 
 import pymongo
 
@@ -16,19 +16,21 @@ MONGO_LOGGER = logging.getLogger(__name__)
 MONGO_CONN_STR = os.environ.get("MONGO_CONN_STR", None)
 MONGO_DB = "MAUVE"
 
+
 def client_cfg_factory(
     host: str = None,
     connect_timeout_ms: int = 3000,
     server_selection_timout_ms: int = 3500,
-    **kwargs
+    **kwargs,
 ) -> Dict:
     """Return a basic MOngo client config factory"""
     return {
-        "host": host or MONGO_CONN_STR, 
+        "host": host or MONGO_CONN_STR,
         "connectTimeoutMS": connect_timeout_ms,
         "serverSelectionTimeoutMS": server_selection_timout_ms,
         **kwargs,
     }
+
 
 def client_factory(**config_kwargs) -> pymongo.mongo_client.MongoClient:
     """Set the Mongo client"""
@@ -39,12 +41,13 @@ def client_factory(**config_kwargs) -> pymongo.mongo_client.MongoClient:
     client.server_info()  # check server liveness
     return client
 
+
 def get_db() -> pymongo.database.Database:
     """Get the database"""
     client = GLOBAL_MONGO.get("client")
     if not client:
         MONGO_LOGGER.warning("No mongo client found. Creating a new one...")
-        client=client_factory()
+        client = client_factory()
         GLOBAL_MONGO.update(client=client)
     return client[MONGO_DB]
 
@@ -58,17 +61,17 @@ def shutdown_client():
         MONGO_LOGGER.warning("Mongo client closed.")
     else:
         MONGO_LOGGER.warning("No mongo client found. Do nothing...")
-        
 
-def update_collection(col_name: str, doc: Dict, filter: Dict = None):
-    """Update the collection given the collection_name, doc, and filter"""
+
+def update_collection(col_name: str, doc: Dict, filter_dict: Dict = None):
+    """Update the collection given the collection_name, doc, and filter_dict"""
     MONGO_LOGGER.warning(f"Updating to {col_name}:\n \t {pf(doc)}")
     collection = get_db()[col_name]
-    return collection.update_many(filter, {"$set": doc})
+    return collection.update_many(filter_dict, {"$set": doc})
 
 
 def insert_collection(
-    col_name:str, docs: Union[Dict, List[Dict]]
+    col_name: str, docs: Union[Dict, List[Dict]]
 ) -> Union[str, List[str]]:
     """Insert the collection with many or one doc"""
     MONGO_LOGGER.warning(f"Inserting {len(docs)} docs to {col_name}")
@@ -83,22 +86,23 @@ def insert_collection(
 
 
 def get_docs(
-    col_name: str, filter: Dict = None, many=True
+    col_name: str, filter_dict: Dict = None, many=True
 ) -> Union[Dict, List[Dict]]:
     """Get documents from given col_name collection"""
     MONGO_LOGGER.warning(
         f"Getting {'many' if many else 'one'} doc(s) in {col_name} "
-        f"with filter={filter}"
+        f"with filter_dict={filter_dict}"
     )
     collection = get_db()[col_name]
     if many:
-        return collection.find(filter)
-    else:
-        return collection.find_one(filter)
+        return collection.find(filter_dict)
+    return collection.find_one(filter_dict)
 
 
-def count(col_name: str, filter: Dict = {}) -> int:
+def count(col_name: str, filter_dict: Dict = None) -> int:
     """Get document counter"""
-    MONGO_LOGGER.warning(f"Counting docs in {col_name} with filter={filter}")
+    if not filter_dict:
+        filter_dict = {}
+    MONGO_LOGGER.warning(f"Counting docs in {col_name} with filter_dict={filter_dict}")
     collection = get_db()[col_name]
-    return collection.count_documents(filter=filter)
+    return collection.count_documents(filter=filter_dict)

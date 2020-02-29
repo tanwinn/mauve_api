@@ -1,0 +1,11 @@
+pep257:
+  disable:
+    - D203
+
+pylint:
+  disable:
+    - logging-format-interpolation
+
+pep8:
+  disable:
+    - E252

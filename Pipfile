@@ -5,7 +5,9 @@ verify_ssl = true
 
 [dev-packages]
 mongomock = "*"
+pytest = "*"
 pytest-cov = "*"
+blue-chip = "*"
 
 [packages]
 fastapi = "*"
@@ -13,7 +15,6 @@ uvicorn = "*"
 gunicorn = "*"
 pymongo = {extras = ["srv"],version = "*"}
 dnspython = "*"
-pytest = "*"
 
 [requires]
 python_version = "3.7"
