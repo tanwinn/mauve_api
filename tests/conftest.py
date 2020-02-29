@@ -2,11 +2,11 @@
 tests.conftest.py
 ~~~~~~~~~~~~~~~~~
 """
-from typing import Union, Dict, List
 import logging
+from typing import Dict, List, Union
 
-import pytest
 import mongomock
+import pytest
 
 from api import mauve_db
 
@@ -27,6 +27,7 @@ def mongo_preloader(mongomock_client):
     Return the db. Remove inserted docs at teardown.
     """
     inserted = []
+
     def _factory(collection_name: str, docs: Union[Dict, List[Dict]]):
         db = mongomock_client[mauve_db.MONGO_DB]
         collection = db[collection_name]
@@ -43,7 +44,7 @@ def mongo_preloader(mongomock_client):
         )
         inserted.extend([initial_count, collection])
         return collection
-    
+
     yield _factory
 
     if inserted:

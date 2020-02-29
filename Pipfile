@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 mongomock = "*"
 pytest-cov = "*"
+blue-chip = "*"
 
 [packages]
 fastapi = "*"
