@@ -3,6 +3,7 @@ api.main.py
 """
 
 import logging
+from typing import List
 
 from fastapi import Body, FastAPI
 from starlette.middleware.cors import CORSMiddleware
@@ -71,14 +72,10 @@ def create_user(user_profile: models.User = Body(USER_EXAMPLE, example=USER_EXAM
     return info
 
 
-@app.get("/users", response_model=models.Users)
+@app.get("/users", response_model=List[models.User])
 def get_user_catalog():
     """Get all users"""
-    return {
-        "users": [
-            models.User.parse_obj(user) for user in mauve_db.get_docs(USER_COLL_NAME)
-        ]
-    }
+    return [models.User.parse_obj(user) for user in mauve_db.get_docs(USER_COLL_NAME)]
 
 
 @app.get("/users/{email}", response_model=models.User)
@@ -89,31 +86,25 @@ def get_user_by_email(email):
     return models.User.parse_obj(result)
 
 
-@app.get("/projects", response_model=models.Projects)
+@app.get("/projects", response_model=List[models.Project])
 def project_catalog():
     "Check the project catalog"
-    return {
-        "projects": [
-            models.Project.parse_obj(pj) for pj in mauve_db.get_docs(PJ_COLL_NAME)
-        ]
-    }
+    return [models.Project.parse_obj(pj) for pj in mauve_db.get_docs(PJ_COLL_NAME)]
 
 
-@app.get("/projects/{email}", response_model=models.Projects)
+@app.get("/projects/{email}", response_model=List[models.Project])
 def project_by_email(email: str):
     "Check the project catalog"
     result = mauve_db.get_docs(PJ_COLL_NAME, filter_dict={"email": email})
     if not list(result):
         raise exceptions.NotFound
-    return {
-        "projects": [models.Project.parse_obj(pj) for pj in result]
-    }
+    return [models.Project.parse_obj(pj) for pj in result]
 
 
 @app.post("/projects", status_code=200)
 def create_project(
     project: models.Project = Body(PROJECT_EXAMPLE, example=PROJECT_EXAMPLE)
-) -> models.Projects:
+):
     "Post a project catalog"
     _id = mauve_db.insert_collection(PJ_COLL_NAME, docs=project.dict())
     mauve_db.update_collection(
