@@ -8,6 +8,7 @@ mongomock = "*"
 pytest = "*"
 pytest-cov = "*"
 blue-chip = "*"
+requests = "*"
 
 [packages]
 fastapi = "*"
@@ -15,6 +16,7 @@ uvicorn = "*"
 gunicorn = "*"
 pymongo = {extras = ["srv"],version = "*"}
 dnspython = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"

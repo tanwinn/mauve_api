@@ -7,10 +7,19 @@ from typing import Dict, List, Union
 
 import mongomock
 import pytest
+from fastapi.testclient import TestClient
 
-from api import mauve_db
+from api import main, mauve_db
 
 LOGGER = logging.getLogger(__name__)
+USER_COLL_NAME = main.USER_COLL_NAME
+PROJECT_COLL_NAME = main.PJ_COLL_NAME
+
+
+@pytest.fixture(scope="session")
+def api_client():
+    """FastAPI testing client"""
+    return TestClient(main.app)
 
 
 @pytest.fixture(scope="session")
@@ -18,6 +27,29 @@ def mongomock_client():
     """Mongomock Mongo client that patches the client_factory"""
     client = mongomock.MongoClient()
     return client
+
+
+@pytest.fixture
+def empty_collection(mongomock_client):
+    """Empty Colletion is empty"""
+    cleanup = []
+
+    def _factory(col_name: str):
+        empty_col = mongomock_client[mauve_db.MONGO_DB][col_name]
+        empty_col.delete_many({})
+        assert not empty_col.count_documents({})
+        cleanup.append(empty_col)
+        return empty_col
+
+    yield _factory
+    empty_col = cleanup.pop()
+    empty_col.delete_many({})
+    assert not empty_col.count_documents({})
+
+
+@pytest.fixture
+def loaded_user_collection(bisque_collection):
+    pass
 
 
 @pytest.fixture

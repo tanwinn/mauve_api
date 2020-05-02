@@ -17,9 +17,9 @@ SAMPLE_DOCS = [
 
 
 @pytest.fixture
-def bisque_collection(mongomock_client):
+def bisque_collection(empty_collection):
     """Bisque Colletion is empty"""
-    bisque_col = mongomock_client[mauve_db.MONGO_DB][TEST_COL_NAME]
+    bisque_col = empty_collection(TEST_COL_NAME)
     bisque_col.delete_many({})
     assert not bisque_col.count_documents({})
     yield bisque_col
@@ -33,6 +33,10 @@ def loaded_bisque_collection(bisque_collection, mongo_preloader):
     bisqued = mongo_preloader(collection_name=bisque_collection.name, docs=SAMPLE_DOCS)
     assert bisqued.count_documents({}) == len(SAMPLE_DOCS)
     return bisqued
+
+
+def test_real_mongo_db():
+    assert mauve_db.get_db()["users"]
 
 
 class TestMauveDB:
